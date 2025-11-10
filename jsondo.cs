@@ -500,6 +500,8 @@ namespace json_do
                     startLineValid = true;
                 }
             }
+
+            int realOffset = 0;
             
             // 如果精确匹配失败，尝试前后错位50行校验
             if (!startLineValid)
@@ -517,6 +519,7 @@ namespace json_do
                         {
                             actualStartLine = checkLine;
                             startLineValid = true;
+                            realOffset = -offset;
                             Console.WriteLine($"Start line found at offset -{offset} (line {checkLine})");
                             break;
                         }
@@ -536,6 +539,7 @@ namespace json_do
                             {
                                 actualStartLine = checkLine;
                                 startLineValid = true;
+                                realOffset = offset;
                                 Console.WriteLine($"Start line found at offset +{offset} (line {checkLine})");
                                 break;
                             }
@@ -549,15 +553,17 @@ namespace json_do
                 Console.WriteLine($"Start line validation failed after offset search. Expected: '{startLineStr}'");
                 return false;
             }
+
+            
             
             // 校验结束行内容
             bool endLineValid = false;
-            int actualEndLine = endLine;
+            int actualEndLine = actualStartLine + realOffset + (endLine - startLine);
             
             // 首先尝试精确匹配
-            if (endLine - 1 < lines.Length)
+            if (actualEndLine - 1 < lines.Length)
             {
-                string actualLineContent = lines[endLine - 1].Trim();
+                string actualLineContent = lines[actualEndLine - 1].Trim();
                 if (actualLineContent == endLineStr)
                 {
                     endLineValid = true;
@@ -567,56 +573,7 @@ namespace json_do
             // 如果精确匹配失败，尝试前后错位50行校验
             if (!endLineValid)
             {
-                Console.WriteLine($"End line validation failed at line {endLine}. Expected: '{endLineStr}', Actual: '{lines[endLine - 1].Trim()}'. Attempting offset validation...");
-                
-                // 向前搜索（最多50行）
-                for (int offset = 1; offset <= 50; offset++)
-                {
-                    int checkLine = endLine - offset;
-                    if (checkLine >= 1 && checkLine - 1 < lines.Length)
-                    {
-                        string actualLineContent = lines[checkLine - 1].Trim();
-                        if (actualLineContent == endLineStr)
-                        {
-                            actualEndLine = checkLine;
-                            endLineValid = true;
-                            Console.WriteLine($"End line found at offset -{offset} (line {checkLine})");
-                            break;
-                        }
-                    }
-                }
-                
-                // 如果向前搜索失败，尝试向后搜索（最多50行）
-                if (!endLineValid)
-                {
-                    for (int offset = 1; offset <= 50; offset++)
-                    {
-                        int checkLine = endLine + offset;
-                        if (checkLine >= 1 && checkLine - 1 < lines.Length)
-                        {
-                            string actualLineContent = lines[checkLine - 1].Trim();
-                            if (actualLineContent == endLineStr)
-                            {
-                                actualEndLine = checkLine;
-                                endLineValid = true;
-                                Console.WriteLine($"End line found at offset +{offset} (line {checkLine})");
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            
-            if (!endLineValid)
-            {
-                Console.WriteLine($"End line validation failed after offset search. Expected: '{endLineStr}'");
-                return false;
-            }
-            
-            // 验证调整后的行号范围是否有效
-            if (actualStartLine > actualEndLine)
-            {
-                Console.WriteLine($"Adjusted line range invalid: {actualStartLine} > {actualEndLine}");
+                Console.WriteLine($"End line validation failed at line {endLine}. \nSEARCH: '{endLineStr}'\nSOURCE: '{lines[actualEndLine - 1].Trim()}'");
                 return false;
             }
             

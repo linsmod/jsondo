@@ -12,8 +12,10 @@ provider:
 所有文件替换操作必须通过 `jsondo` 工具执行，禁止直接使用 `replace_in_file` 工具。
 
 ## 执行流程
-当执行文件替换操作时，必须先将<invoke>指令转换为JSON格式并写入JSON文件，
-再使用命令行调用 jsondo -f <command.json>
+当执行文件替换操作时，必须按顺序
+1、先将<invoke>指令转换为JSON格式并写入JSON文件，
+2、再使用命令行调用 jsondo -f <command.json>
+3、必须顺序执行，每创建一个JSON文件执行一次jsondo
 
 jsondo支持的功能包括：
 - replace_by_content: 用于替换文件中的指定文本, 重写函数等
