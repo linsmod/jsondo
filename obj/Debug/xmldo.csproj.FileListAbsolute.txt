@@ -6,3 +6,5 @@ C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\xmldo.cspr
 C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\xmldo.exe
 C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\xmldo.pdb
 C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\xmldo.exe.config
+C:\Users\linswin\source\repos\search_replace\search_replace\bin\Debug\Newtonsoft.Json.dll
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\xmldo.csproj.Up2Date

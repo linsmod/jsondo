@@ -1,0 +1,10 @@
+C:\Users\linswin\source\repos\search_replace\search_replace\bin\Debug\jsondo.exe.config
+C:\Users\linswin\source\repos\search_replace\search_replace\bin\Debug\jsondo.exe
+C:\Users\linswin\source\repos\search_replace\search_replace\bin\Debug\jsondo.pdb
+C:\Users\linswin\source\repos\search_replace\search_replace\bin\Debug\Newtonsoft.Json.dll
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\jsondo.csproj.AssemblyReference.cache
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\jsondo.csproj.CoreCompileInputs.cache
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\jsondo.csproj.Up2Date
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\jsondo.exe
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\jsondo.pdb
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\jsondo.exe.config
