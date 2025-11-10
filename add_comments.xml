@@ -1,0 +1,32 @@
+<xmldo>
+  <call>replace_by_lines</call>
+  <args>
+    <file>c:\Users\linswin\source\repos\search_replace\search_replace\Program.cs</file>
+    <startLine>200</startLine>
+    <endLine>200</endLine>
+    <new_str>        /// &lt;summary&gt;
+        /// 执行文件替换操作
+        /// &lt;/summary&gt;
+        /// &lt;param name="filePath"&gt;文件路径&lt;/param&gt;
+        /// &lt;param name="old_str"&gt;要替换的旧文本&lt;/param&gt;
+        /// &lt;param name="new_str"&gt;替换后的新文本&lt;/param&gt;
+        /// &lt;returns&gt;是否成功执行替换&lt;/returns&gt;</new_str>
+  </args>
+</xmldo>
+
+<xmldo>
+  <call>replace_by_lines</call>
+  <args>
+    <file>c:\Users\linswin\source\repos\search_replace\search_replace\Program.cs</file>
+    <startLine>242</startLine>
+    <endLine>242</endLine>
+    <new_str>        /// &lt;summary&gt;
+        /// 按行替换文件内容
+        /// &lt;/summary&gt;
+        /// &lt;param name="filePath"&gt;文件路径&lt;/param&gt;
+        /// &lt;param name="startLine"&gt;开始行号&lt;/param&gt;
+        /// &lt;param name="endLine"&gt;结束行号&lt;/param&gt;
+        /// &lt;param name="new_str"&gt;替换后的新内容&lt;/param&gt;
+        /// &lt;returns&gt;是否成功执行替换&lt;/returns&gt;</new_str>
+  </args>
+</xmldo>

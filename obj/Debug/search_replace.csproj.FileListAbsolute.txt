@@ -1,0 +1,8 @@
+C:\Users\linswin\source\repos\search_replace\search_replace\bin\Debug\search_replace.exe.config
+C:\Users\linswin\source\repos\search_replace\search_replace\bin\Debug\search_replace.exe
+C:\Users\linswin\source\repos\search_replace\search_replace\bin\Debug\search_replace.pdb
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\search_replace.csproj.AssemblyReference.cache
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\search_replace.csproj.CoreCompileInputs.cache
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\search_replace.exe
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\search_replace.pdb
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\search_replace.exe.config

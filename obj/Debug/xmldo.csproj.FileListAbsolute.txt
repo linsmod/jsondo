@@ -1,0 +1,8 @@
+C:\Users\linswin\source\repos\search_replace\search_replace\bin\Debug\xmldo.exe.config
+C:\Users\linswin\source\repos\search_replace\search_replace\bin\Debug\xmldo.exe
+C:\Users\linswin\source\repos\search_replace\search_replace\bin\Debug\xmldo.pdb
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\xmldo.csproj.AssemblyReference.cache
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\xmldo.csproj.CoreCompileInputs.cache
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\xmldo.exe
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\xmldo.pdb
+C:\Users\linswin\source\repos\search_replace\search_replace\obj\Debug\xmldo.exe.config
