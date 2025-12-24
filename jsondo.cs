@@ -217,7 +217,7 @@ namespace json_do
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Warning: Failed to delete command file {commandFile}: {ex.Message}");
+                //Console.WriteLine($"Warning: Failed to delete command file {commandFile}: {ex.Message}");
             }
         }
         
@@ -253,10 +253,17 @@ namespace json_do
                 Console.WriteLine("Missing new_str parameter");
                 return false;
             }
+            // 获取新文本参数
+            var startLine = 0;
+            var startLineElement = argsElement["startLine"];
+            if (startLineElement != null)
+            {
+                startLine = startLineElement.Value<int>();
+            }
             string newStr = newStrElement.Value<string>()?.Trim() ?? "";
             
-            // 执行替换操作
-            return replace_by_content(filePath, oldStr, newStr);
+            // 执行替换操作 
+            return replace_by_content(filePath, oldStr, startLine, newStr);
         }
         
         /// <summary>
@@ -345,9 +352,13 @@ namespace json_do
             // 执行替换操作
             return replace_by_lines(filePath, startLine, endLine, newStr, startLineStr, endLineStr);
         }
+        private static int indexToLine(String str, int index)
+        {
+            return str.Substring(0, index).Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None).Length;
+        }
         
         // 文件替换方法：将文件中的指定文本替换为新文本
-        private static bool replace_by_content(string filePath, string old_str, string new_str)
+        private static bool replace_by_content(string filePath, string old_str,int startLine, string new_str)
         {
             if (!System.IO.File.Exists(filePath))
             {
@@ -356,12 +367,14 @@ namespace json_do
             }
             old_str = old_str.Replace("\r\n","\n");
             string content = System.IO.File.ReadAllText(filePath).Replace("\r\n","\n");
-            
+            var search_lines = old_str.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None).SelectMany(x => splitSpeicalMultiline(filePath, x)).ToArray();
+            var insert_lines = new_str.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None).SelectMany(x => splitSpeicalMultiline(filePath, x)).ToArray();
             var index = content.IndexOf(old_str);
             if (index == -1)
             {
-                if (replaceLineByLine(filePath, content, old_str, new_str))
+                if (replaceLineByLine(filePath, content,startLine, search_lines, insert_lines))
                 {
+                    Console.WriteLine($"Replaced at line {indexToLine(content,index)}, deleted {search_lines.Length} lines, inserted {insert_lines.Length} lines");
                     return true;
                 }
                 Console.WriteLine($"Replacement is not applied: {filePath}");
@@ -374,34 +387,34 @@ namespace json_do
             }
             content = content.Replace(old_str, new_str);
             System.IO.File.WriteAllText(filePath, content);
-            Console.WriteLine($"Replaced text in: {filePath}");
+            Console.WriteLine($"Replaced at line {indexToLine(content, index)}, deleted {search_lines.Length} lines, inserted {insert_lines.Length} lines");
             return true;
         }
         private static int FindFirstLine(string[] source,int sourcePreSkip,string search)
         {
-            int index = sourcePreSkip-1;
-            foreach (var item in source.Skip(sourcePreSkip))
+            int rowNumber = sourcePreSkip;
+            foreach (var item in source.Skip(rowNumber))
             {
-                index++;
                 if (item.TrimStart() == search.TrimStart())
                 {
-                    return index;
+                    return rowNumber;
                 }
+                rowNumber++;
             }
-            return index;
+            return -1;
         }
         private static int FindLastLine(string[] source, int sourcePreSkip, string search)
         {
-            int index = sourcePreSkip-1;
-            foreach (var item in source.Skip(sourcePreSkip))
+            int rowNumber = sourcePreSkip;
+            foreach (var item in source.Skip(rowNumber))
             {
-                index++;
                 if (item.TrimEnd() == search.TrimEnd())
                 {
-                    return index;
+                    return rowNumber;
                 }
+                rowNumber++;
             }
-            return index;
+            return -1;
         }
 
         private static bool IsLineTextEquals(string source, string search,bool report)
@@ -411,50 +424,65 @@ namespace json_do
                 return true;
             }
             if(report)
-                Console.WriteLine($" ==== This Line is Not Equal ==== \nSOURCE: {source}\n\nSEARCH:{search}\n");
+                Console.WriteLine($"==== This Line is Not Equal ==== \nSOURCE: {source}\n\nSEARCH:{search}\n");
             return false;
         }
 
-        private static bool replaceLineByLine(string filePath, string content,string old_str,string new_str)
+        private static bool replaceLineByLine(string filePath, string content,int startLine,string [] search_lines, string [] insert_lines)
         {
             var content_lines = content.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-            var search_lines = old_str.Split(new string[] { "\r\n","\n" }, StringSplitOptions.None);
+           
             // check first line
-            var start = FindFirstLine(content_lines,0,search_lines[0]);
-            if (start == -1) {
+            var startRowNum = FindFirstLine(content_lines, startLine, search_lines[0]);
+            if (startRowNum == -1) {
+                Console.WriteLine($"First line of searching block is not found in source[{startLine}~{content.Length}]");
                 return false;
             }
-            if(start + search_lines.Length > content_lines.Length)
+            if(startRowNum + search_lines.Length > content_lines.Length)
             {
+                Console.WriteLine($"Searching block is overflow to the source[{startLine}~{content.Length}]");
                 return false;
             }
 
             
             if (search_lines.Length > 1) {
                 // check last line
-                var end = FindLastLine(content_lines, start + search_lines.Length - 1, search_lines[search_lines.Length - 1]);
+                var end = FindLastLine(content_lines, startRowNum + search_lines.Length, search_lines[search_lines.Length - 1]);
                 if (end == -1)
                 {
+                    Console.WriteLine("Last line of searching block is not found in source.");
                     return false;
                 }
                 if (search_lines.Length > 2)
                 {
                     // check other lines
-                    for (int i = 1; i < search_lines.Length-1; i++)
+                    for (int i = 1; i <= search_lines.Length-1; i++)
                     {
-                        if (!IsLineTextEquals(content_lines[start + i], search_lines[i],false))
+                        if (!IsLineTextEquals(content_lines[startRowNum + i], search_lines[i],false))
                         {
-                            Console.WriteLine($"Matched first {i} lines and break at source line { start + i + 1}");
-                            IsLineTextEquals(content_lines[start + i], search_lines[i], true);
+                            Console.WriteLine($"Matched first {i} lines, but matching broke/failed at source line { startRowNum + i + 1}");
+                            IsLineTextEquals(content_lines[startRowNum + i], search_lines[i], true);
                             return false;
                         }
                     }
                 }
             }
-
             // all lines matched, do replace
-            File.WriteAllText(filePath, string.Join("\n", content_lines.Take(start)) + "\n" + new_str + "\n" + string.Join("\n", content_lines.Skip(start + search_lines.Length)));
+            File.WriteAllText(filePath, string.Join("\n", content_lines.Take(startRowNum)) + "\n" + string.Join("\n", insert_lines) + "\n" + string.Join("\n", content_lines.Skip(startRowNum + search_lines.Length)));
             return true;
+        }
+
+        private static string[] splitSpeicalMultiline(string filePath, string x)
+        {
+            var ext = new FileInfo(filePath).Extension.ToLower();
+            if (ext == ".js" || ext == ".tsx" || ext == "ts") {
+                if (x.Contains("`"))
+                {
+                    // if string is wrapped by backtick
+                    return x.Split(new string[] { "\\r\\n", "\\n" }, StringSplitOptions.None);
+                }
+            }
+            return new string[] { x };
         }
 
         // 按行替换文件方法：根据行号范围替换文件内容，支持错位校验
@@ -494,11 +522,7 @@ namespace json_do
             // 首先尝试精确匹配
             if (startLine - 1 < lines.Length)
             {
-                string actualLineContent = lines[startLine - 1].Trim();
-                if (actualLineContent == startLineStr)
-                {
-                    startLineValid = true;
-                }
+                startLineValid = isMultilineMatchStrictly(startLine, startLineStr, lines);
             }
 
             int realOffset = 0;
@@ -555,19 +579,14 @@ namespace json_do
             }
 
             
+            // 假设替换的行数不变，则结束行也需要相应偏移
+            int actualEndLine = actualStartLine + realOffset + (endLine - startLine);
             
             // 校验结束行内容
             bool endLineValid = false;
-            int actualEndLine = actualStartLine + realOffset + (endLine - startLine);
-            
-            // 首先尝试精确匹配
             if (actualEndLine - 1 < lines.Length)
             {
-                string actualLineContent = lines[actualEndLine - 1].Trim();
-                if (actualLineContent == endLineStr)
-                {
-                    endLineValid = true;
-                }
+                endLineValid = isMultilineMatchStrictly(actualEndLine, endLineStr, lines);
             }
             
             // 如果精确匹配失败，尝试前后错位50行校验
@@ -602,6 +621,26 @@ namespace json_do
             // 写入文件
             System.IO.File.WriteAllLines(filePath, newLines);
             Console.WriteLine($"Replaced lines {actualStartLine}-{actualEndLine} (originally {startLine}-{endLine}) in: {filePath}");
+            return true;
+        }
+
+        private static bool isMultilineMatchStrictly(int srcLineIndex, string comparingStr, string[] srcLines)
+        {
+            
+            int compareLineOffset = compareLines.Length;
+            for (int i = 0; i < compareLineOffset; i++)
+            {
+                int currentLineIndex = srcLineIndex - 1 + compareLineOffset;
+                if (currentLineIndex > srcLines.Length - 1)
+                {
+                    Console.WriteLine("Not match due to exceeding file length at line " + (currentLineIndex + 1));
+                    return false;
+                }
+                if (srcLines[currentLineIndex] != compareLines[i])
+                {
+                    return false;
+                }
+            }
             return true;
         }
     }
