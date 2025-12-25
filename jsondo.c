@@ -81,7 +81,7 @@ int is_special_extension(const char* ext);
 // 主函数
 int main(int argc, char* argv[]) {
     // 创建目录
-    mkdir(".vscode", 0755);
+    mkdir(".jsondo", 0755);
     
     // 显示帮助信息
     if (argc == 1 || strcmp(argv[1], "/help") == 0 || strcmp(argv[1], "-h") == 0) {
@@ -262,7 +262,7 @@ int eval_command(const char* json_content, const char* command_file) {
     // 只有在所有操作都成功时才删除命令文件
     if (success) {
         char backup_path[MAX_PATH_LEN];
-        snprintf(backup_path, sizeof(backup_path), ".vscode/jsondo.lastApplied");
+        snprintf(backup_path, sizeof(backup_path), ".jsondo/jsondo.lastApplied");
         
         // 复制命令文件到备份位置
         copy_file(command_file, backup_path);
@@ -490,7 +490,7 @@ int replace_by_content(const char* file_path, const char* old_str, int start_lin
     
     // 备份原文件
     char backup_path[MAX_PATH_LEN];
-    snprintf(backup_path, sizeof(backup_path), ".vscode/jsondo.lastbackup");
+    snprintf(backup_path, sizeof(backup_path), ".jsondo/jsondo.lastbackup");
     copy_file(file_path, backup_path);
     
     // 写入新内容
@@ -648,7 +648,7 @@ int replace_by_range(const char* file_path, int start_line, int end_line, const 
 
     // 备份原文件
     char backup_path[MAX_PATH_LEN];
-    snprintf(backup_path, sizeof(backup_path), ".vscode/jsondo.lastbackup");
+    snprintf(backup_path, sizeof(backup_path), ".jsondo/jsondo.lastbackup");
     copy_file(file_path, backup_path);
 
     if (actual_start_line != start_line || actual_end != actual_end_line) {

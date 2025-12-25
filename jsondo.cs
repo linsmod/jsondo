@@ -13,7 +13,7 @@ namespace json_do
     {
         static void Main(string[] args)
         {
-            Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, ".vscode"));
+            Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, ".jsondo"));
             // 显示帮助信息
             if (args.Length == 0 || "/help" == args[0] || "-h" == args[0])
             {
@@ -210,7 +210,7 @@ namespace json_do
                 // 只有在所有操作都成功时才删除命令文件
                 if (success)
                 {
-                    System.IO.File.Copy(commandFile, Path.Combine(Environment.CurrentDirectory, ".vscode/jsondo.lastApplied"), true);
+                    System.IO.File.Copy(commandFile, Path.Combine(Environment.CurrentDirectory, ".jsondo/jsondo.lastApplied"), true);
                     DeleteCommandFile(commandFile);
                 }
             }
@@ -443,7 +443,7 @@ namespace json_do
                 return false;
             }
             content = content.Replace(old_str, new_str);
-            System.IO.File.Copy(filePath, Path.Combine(Environment.CurrentDirectory, ".vscode/jsondo.lastbackup"),true);
+            System.IO.File.Copy(filePath, Path.Combine(Environment.CurrentDirectory, ".jsondo/jsondo.lastbackup"),true);
             System.IO.File.WriteAllText(filePath, content);
             Console.WriteLine($"  Replaced at line {indexToLine(content, index)}, deleted {search_lines.Length} lines, inserted {insert_lines.Length} lines");
             return true;
@@ -672,7 +672,7 @@ namespace json_do
             {
                 newLines.Add(lines[i]);
             }
-            System.IO.File.Copy(filePath, Path.Combine(Environment.CurrentDirectory, ".vscode/jsondo.lastbackup"),true);
+            System.IO.File.Copy(filePath, Path.Combine(Environment.CurrentDirectory, ".jsondo/jsondo.lastbackup"),true);
             
             // 写入文件
             System.IO.File.WriteAllLines(filePath, newLines);

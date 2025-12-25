@@ -225,8 +225,8 @@ Replaced at line 23, deleted 1 lines, inserted 1 lines
 
 jsondo 会自动执行以下备份操作：
 
-1. **命令文件备份**：成功执行后将命令文件备份到 `.vscode/jsondo.lastApplied`
-2. **原文件备份**：修改前会将原文件备份到 `.vscode/jsondo.lastbackup`
+1. **命令文件备份**：成功执行后将命令文件备份到 `.jsondo/jsondo.lastApplied`
+2. **原文件备份**：修改前会将原文件备份到 `.jsondo/jsondo.lastbackup`
 
 ### 特殊处理
 

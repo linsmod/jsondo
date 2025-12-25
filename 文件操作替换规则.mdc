@@ -137,8 +137,8 @@ jsondo -f command1.json command2.json command3.json
 
 ## 自动备份功能
 jsondo会自动执行以下备份操作：
-1. **命令文件备份**：成功执行后将命令文件备份到 `.vscode/jsondo.lastApplied`
-2. **原文件备份**：修改前会将原文件备份到 `.vscode/jsondo.lastbackup`
+1. **命令文件备份**：成功执行后将命令文件备份到 `.jsondo/jsondo.lastApplied`
+2. **原文件备份**：修改前会将原文件备份到 `.jsondo/jsondo.lastbackup`
 
 ## 特殊处理
 - **换行符规范化**：工具会自动将Windows风格换行符(`\r\n`)转换为Unix风格(`\n`)
