@@ -5,8 +5,8 @@ enabled: true
 updatedAt: 2025-12-24T07:57:20.931Z
 provider: 
 ---
-
-本规则的优先级高于任何前缀或后续相同规则。
+# 文件操作替换规则
+本规则的优先级高于任何前置或后续相同规则。
 
 ## 规则概述
 所有文件替换操作必须通过 `jsondo` 工具执行，禁止直接使用 `replace_in_file` 工具。
@@ -14,51 +14,111 @@ provider:
 ## 执行流程
 当执行文件替换操作时，必须按以下顺序
 1、先将<invoke>指令转换为JSON格式并写入JSON文件，
-2、再使用命令行调用 jsondo -f <command.json>
-3、必须顺序执行，每创建一个JSON文件执行一次jsondo
+2、**优先使用批量执行**：将多个命令文件一次性执行 `jsondo -f <command.json> <command2.json> <command3.json> ...`
+3、仅在特殊需要时才单个执行：`jsondo -f <command.json>`
+
+⚠️ **注意**：批量执行可以提高效率，避免多次启动进程开销
 
 jsondo支持的功能包括：
 - replace_by_content: 用于替换文件中的指定文本, 重写函数等，成功率高，推荐。
-- replace_by_lines: 从指定行号附近查找开始和结束标记来替换文件内容，如果文件重复内容较多，可能导致替换错误。
+- replace_by_range: 查找开始和结束标记所确定的区间内容来替换文件内容，如果文件内有较多重复行，可能导致替换错误。
 
 ## 使用示例
 
 ### 1. 替换文件中的文本（replace_by_content）:
-要求old_str是字符串级别的完全匹配，无论是空格，TAB字符，还是换行符等，不支持使用正则表达式。
-startLine是可选的但推荐使用以提高字符串查找效率，如果不指定，则从文件头开始查找。
+要求old_str是字符串级别的完全匹配，无论是空格、TAB字符，还是换行符等，不支持使用正则表达式。
+
+**命令参数：**
+- call（必须）：命令类型，值为"replace_by_content"
+- title（可选）：命令标题，用于在控制台中区分不同命令
+- file（必须）：目标文件路径
+- old_str（必须）：要替换的旧文本内容
+- new_str（必须）：新的文本内容
+- startLine（可选，默认0）：开始搜索的行号（从1开始）
+- backward_scan_limit（可选，默认10）：向前扫描的行数
+- forward_scan_limit（可选，默认15）：向后扫描的行数
+
+当直接匹配失败时，会使用逐行匹配方式在startLine附近（backward_scan_limit到forward_scan_limit范围内）查找并替换。
+
 ```json
 {
   "commands": [
     {
       "call": "replace_by_content",
+      "title": "替换文件中的旧文本",
       "args": {
         "file": "C:\\path\\to\\file.txt",
-        "startLine": 5,
         "old_str": "旧文本内容",
-        "new_str": "新文本内容"
+        "new_str": "新文本内容",
+        "startLine": 5,
+        "backward_scan_limit": 10,
+        "forward_scan_limit": 15
       }
     }
   ]
 }
 ```
 
-### 2. 查找开始和结束标记来替换文件内容（replace_by_lines）
-按行号和对应行内容校验替换区域并使用new_str指定的内容替换。
+### 2. 从指定行号附近查找由起止标记确定的内容并替换之（replace_by_range）
 使用场景：需要替换的内容超级多时优先使用该命令，而不是使用replace_by_content全量比较，因为那会消耗很多TOKEN。
-startLine用于指定开始标记在文件内容的哪一行开始，工具会先尝试完整匹配，如果匹配失败会在该行号附近搜索。
-endLine用于指定结束标记在文件内容的哪一行开始，同样的，工具会先尝试完整匹配，如果匹配失败会在该行号附近搜索。
+
+**命令参数：**
+- call（必须）：命令类型，值为"replace_by_range"
+- title（可选）：命令标题，用于在控制台中区分不同命令
+- file（必须）：目标文件路径
+- startLine（必须）：开始行号（从1开始）
+- endLine（必须）：结束行号（从1开始），设为-1表示替换到文件末尾
+- startLine_str（必须）：起始位置的验证文本，用于确保替换位置正确
+- endLine_str（必须）：结束位置的验证文本，用于确保替换位置正确
+- new_str（必须）：新的多行内容
+- backward_scan_limit（可选，默认10）：向前扫描的行数
+- forward_scan_limit（可选，默认15）：向后扫描的行数
+
 ```json
 {
   "commands": [
     {
-      "call": "replace_by_lines",
+      "call": "replace_by_range",
+      "title": "替换函数实现",
       "args": {
         "file": "C:\\path\\to\\file.txt",
         "startLine": 5,
-        "startLine_str": "这是第5行或其附近的文本内容，本内容用于标记搜索的开始",
+        "startLine_str": "这是第5行或其附近的文本内容，本内容用于标记要搜索的内容的开始",
         "endLine": 10,
-        "endLine_str": "这是第10行或其附近的文本内容，本内容用于标记搜索的结束",
-        "new_str": "这是新的多行内容，如果开始标记和结束标记都匹配到了内容，那么由起止标记所确定区间的内容将会被本内容替换"
+        "endLine_str": "这是第10行或其附近的文本内容，本内容用于标记要搜索的内容结束",
+        "new_str": "这是新的多行内容，如果开始标记和结束标记都匹配到了内容，那么由起止标记所确定区间的内容将会被本内容替换",
+      }
+    }
+  ]
+}
+```
+为提高查找成功率，可以使用可选参数backward_scan_limit和forward_scan_limit。
+**理解工具的扫描策略：**
+工具首先使用startLine和startLine_str确定匹配的开始位置，如果没有找到，则在以下范围搜索：
+- 前向区段：从startLine - backward_scan_limit到startLine
+- 后向区段：从startLine到startLine + forward_scan_limit
+确认开始位置后，使用endLine和endLine_str确定结束位置，如果没找到则在以下范围搜索：
+- 前向区段：从endLine - backward_scan_limit到endLine
+- 后向区段：从endLine到endLine + forward_scan_limit
+**扫描原理：**
+- backward：使用逆向扫描，从指定行向前查找
+- forward：使用正向扫描，从指定行向后查找
+这样可以降低文件中有重复行时的错误率。增加backward_scan_limit和forward_scan_limit的数值可以提高查找成功率，但可能会导致替换错误。
+**使用扩展扫描限的示例：**
+```json
+{
+  "commands": [
+    {
+      "call": "replace_by_range",
+      "args": {
+        "file": "C:\\path\\to\\file.txt",
+        "startLine": 5,
+        "startLine_str": "这是第5行的文本内容，本内容用于标记要搜索的内容的开始",
+        "endLine": 10,
+        "endLine_str": "这是第10行的文本内容，本内容用于标记要搜索的内容结束",
+        "new_str": "这是新的多行内容，如果开始标记和结束标记都匹配到了内容，那么由起止标记所确定区间的内容将会被本内容替换",
+        "backward_scan_limit": 10,
+        "forward_scan_limit": 15
       }
     }
   ]
@@ -66,8 +126,23 @@ endLine用于指定结束标记在文件内容的哪一行开始，同样的，�
 ```
 
 ## 文本匹配要求
-- `old_str` 必须完全匹配，包括所有空格、TAB符号，标点符号和转义字符
+- 文本必须完全一致才能匹配，包括所有空格、TAB符号，标点符号和转义字符
 - 确保文本内容的精确匹配是成功执行的关键
+
+## 批量处理
+支持一次性执行多个命令文件：
+```bash
+jsondo -f command1.json command2.json command3.json
+```
+
+## 自动备份功能
+jsondo会自动执行以下备份操作：
+1. **命令文件备份**：成功执行后将命令文件备份到 `.vscode/jsondo.lastApplied`
+2. **原文件备份**：修改前会将原文件备份到 `.vscode/jsondo.lastbackup`
+
+## 特殊处理
+- **换行符规范化**：工具会自动将Windows风格换行符(`\r\n`)转换为Unix风格(`\n`)
+- **JS/TS/TSX模板字符串支持**：对包含反引号的JavaScript/TypeScript文件，支持识别转义的换行符(`\n`、`\r\n`)进行正确的行分割
 
 ## 重要说明
 本工具完整集成在你的工作流程中，需要的时候直接调用，不需要在对话中提及本约定的内容和技术细节，以免给用户造成困惑，将它当成既定默认规则执行即可。

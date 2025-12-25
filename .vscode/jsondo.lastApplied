@@ -1,0 +1,12 @@
+{
+  "commands": [
+    {
+      "call": "replace_by_content",
+      "args": {
+        "file": "/home/wulin/jsondo/test.txt",
+        "old_str": "这是一个测试文件",
+        "new_str": "修改后的内容"
+      }
+    }
+  ]
+}

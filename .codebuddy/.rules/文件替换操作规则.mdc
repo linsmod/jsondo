@@ -19,7 +19,7 @@ provider:
 
 jsondo支持的功能包括：
 - replace_by_content: 用于替换文件中的指定文本, 重写函数等
-- replace_by_lines: 按行号范围替换文件内容
+- replace_by_range: 按行号范围替换文件内容
 
 ## 使用示例
 
@@ -42,7 +42,7 @@ startLine是可选的但推荐使用以提高字符串对比效率，如果不�
 }
 ```
 
-### 2. 按行号替换文件内容（replace_by_lines）:
+### 2. 按行号替换文件内容（replace_by_range）:
 使用场景：需要替换的内容较多时优先使用该命令，可以避免出现错误浪费对话TOKEN。
 工具将根据提供的行号和内容校验要替换的内容，如果完整校验失败会自动回退为前后错位50行校验。
 校验成功则删除该段内容并写入新的内容，校验失败则返回错误信息。
@@ -50,7 +50,7 @@ startLine是可选的但推荐使用以提高字符串对比效率，如果不�
 {
   "commands": [
     {
-      "call": "replace_by_lines",
+      "call": "replace_by_range",
       "args": {
         "file": "C:\\path\\to\\file.txt",
         "startLine": 5,
