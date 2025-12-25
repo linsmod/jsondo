@@ -1,11 +1,27 @@
 {
   "commands": [
     {
-      "call": "replace_by_content",
+      "title": "Replace Range 2-3",
+      "call": "replace_by_range",
       "args": {
-        "file": "/home/wulin/jsondo/test.txt",
-        "old_str": "这是一个测试文件",
-        "new_str": "修改后的内容"
+        "file": "/home/wulin/jsondo/test_range.txt",
+        "startLine": 2,
+        "endLine": 3,
+        "startLine_str": "Line 2",
+        "endLine_str": "Line 3",
+        "new_str": "New Line 2\nNew Line 3"
+      }
+    },
+    {
+      "title": "Replace Range 4-5",
+      "call": "replace_by_range",
+      "args": {
+        "file": "/home/wulin/jsondo/test_range.txt",
+        "startLine": 4,
+        "endLine": 5,
+        "startLine_str": "Line 4",
+        "endLine_str": "Line 5",
+        "new_str": "New Line 4\nNew Line 5"
       }
     }
   ]

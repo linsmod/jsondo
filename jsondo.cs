@@ -81,8 +81,10 @@ namespace json_do
                         Console.WriteLine("Stopping execution due to error.");
                         Environment.Exit(1);
                     }
-                    Console.WriteLine("Eval command from " + commandFile);
                     string jsonContent = System.IO.File.ReadAllText(commandFile);
+
+                    Console.WriteLine("Eval command from " + commandFile);
+
                     int result = eval_command(jsonContent, commandFile);
                     if (result != 0)
                     {
@@ -170,6 +172,16 @@ namespace json_do
                         Console.WriteLine("Invalid JSON format: missing or invalid 'args' object");
                         success = false;
                         break;
+                    }
+
+                    // 获取可选的title字段
+                    var titleElement = commandElement["title"];
+                    string title = (titleElement != null && titleElement.Type == JTokenType.String) ? titleElement.Value<string>() : null;
+
+                    // 显示当前命令
+                    if (!string.IsNullOrEmpty(title))
+                    {
+                        Console.WriteLine($"  Executing: `{title}`");
                     }
 
                     // 根据工具名称执行相应的操作
@@ -407,7 +419,7 @@ namespace json_do
         {
             if (!System.IO.File.Exists(filePath))
             {
-                Console.WriteLine($"File not found: {filePath}");
+                Console.WriteLine($"  File not found: {filePath}");
                 return false;
             }
             old_str = old_str.Replace("\r\n", "\n");
@@ -419,21 +431,21 @@ namespace json_do
             {
                 if (replaceLineByLine(filePath, content, startLine, search_lines, insert_lines, backwardScanLimit, forwardScanLimit))
                 {
-                    Console.WriteLine($"Replaced at line {indexToLine(content, index)}, deleted {search_lines.Length} lines, inserted {insert_lines.Length} lines");
+                    Console.WriteLine($"  Replaced at line {indexToLine(content, index)}, deleted {search_lines.Length} lines, inserted {insert_lines.Length} lines");
                     return true;
                 }
-                Console.WriteLine($"Replacement is not applied: {filePath}");
+                Console.WriteLine($"  Replacement is not applied: {filePath}");
                 return false;
             }
             else if (index != content.LastIndexOf(old_str))
             {
-                Console.WriteLine($"Multiple occurrences found: {filePath}");
+                Console.WriteLine($"  Multiple occurrences found: {filePath}");
                 return false;
             }
             content = content.Replace(old_str, new_str);
             System.IO.File.Copy(filePath, Path.Combine(Environment.CurrentDirectory, ".vscode/jsondo.lastbackup"),true);
             System.IO.File.WriteAllText(filePath, content);
-            Console.WriteLine($"Replaced at line {indexToLine(content, index)}, deleted {search_lines.Length} lines, inserted {insert_lines.Length} lines");
+            Console.WriteLine($"  Replaced at line {indexToLine(content, index)}, deleted {search_lines.Length} lines, inserted {insert_lines.Length} lines");
             return true;
         }
         private static int FindFirstLine(string[] source, int sourcePreSkip, string search,int searchDistance=10)
@@ -506,13 +518,13 @@ namespace json_do
 
             if (startRowNo == -1)
             {
-                Console.WriteLine($"E: First line mismatch near LN-{startLine} (±{backwardScanLimit + forwardScanLimit} lines)");
+                Console.WriteLine($"  E: First line mismatch near LN-{startLine} (±{backwardScanLimit + forwardScanLimit} lines)");
                 return false;
             }
             if (startRowNo + search_lines.Length > content_lines.Length)
             {
-                Console.WriteLine($"E: Total lines of the searching content is more than the rest lines of source");
-                Console.WriteLine($"Searching lines sum: {search_lines.Length}, but {content_lines.Length - startLine} lines from LN-{startLine} to the source.");
+                Console.WriteLine($"  E: Total lines of the searching content is more than the rest lines of source");
+                Console.WriteLine($"  Searching lines sum: {search_lines.Length}, but {content_lines.Length - startLine} lines from LN-{startLine} to the source.");
                 return false;
             }
 
@@ -533,7 +545,7 @@ namespace json_do
 
                 if (end == -1)
                 {
-                    Console.WriteLine($"Last line mismatch near LN-{startRowNo + search_lines.Length}.");
+                    Console.WriteLine($"  Last line mismatch near LN-{startRowNo + search_lines.Length}.");
                     return false;
                 }
                 if (search_lines.Length > 2)
@@ -543,7 +555,7 @@ namespace json_do
                     {
                         if (!IsLineTextEquals(content_lines[startRowNo + i], search_lines[i], -1))
                         {
-                            Console.WriteLine($"Matched first {i} lines, but mismatch at at LN-{startRowNo + i}");
+                            Console.WriteLine($"  Matched first {i} lines, but mismatch at at LN-{startRowNo + i}");
                             IsLineTextEquals(content_lines[startRowNo + i], search_lines[i], startRowNo + i);
                             return false;
                         }
@@ -574,7 +586,7 @@ namespace json_do
         {
             if (!System.IO.File.Exists(filePath))
             {
-                Console.WriteLine($"File not found: {filePath}");
+                Console.WriteLine($"  File not found: {filePath}");
                 return false;
             }
 
@@ -584,7 +596,7 @@ namespace json_do
             // 验证行号范围
             if (startLineNo > lines.Length)
             {
-                Console.WriteLine($"Start line {startLineNo} exceeds file length {lines.Length}");
+                Console.WriteLine($"  Start line {startLineNo} exceeds file length {lines.Length}");
                 return false;
             }
 
@@ -595,7 +607,7 @@ namespace json_do
             }
             else if (endLineNo > lines.Length)
             {
-                Console.WriteLine($"End line {endLineNo} exceeds file length {lines.Length}");
+                Console.WriteLine($"  End line {endLineNo} exceeds file length {lines.Length}");
                 return false;
             }
 
@@ -616,7 +628,7 @@ namespace json_do
                 }
                 if (markerStartIndex == -1)
                 {
-                    Console.WriteLine($"W: Start marker not found near LN-{startLineNo} (±{backwardScanLimit + forwardScanLimit} lines). \nREQEUSTED: '{startLineStr}'\nACTRUALLY: '{lines[actualStartLineNo - 1]}'");
+                    Console.WriteLine($"  W: Start marker not found near LN-{startLineNo} (±{backwardScanLimit + forwardScanLimit} lines). \n  REQEUSTED: '{startLineStr}'\n  ACTRUALLY: '{lines[actualStartLineNo - 1]}'");
                     return false;
                 }
                 actualStartLineNo = markerStartIndex + 1;
@@ -631,12 +643,12 @@ namespace json_do
                 int markerStartIndex = LocateMultiLinesForward(searchingLines, lines, minStartLineNoOfEndMarker, forwardScanLimit);
                 if (markerStartIndex == -1)
                 {
-                    Console.WriteLine($"WARN: End marker not found within {forwardScanLimit} lines after LN-{endLineNo}. \nREQEUSTED: '{endLineStr}'\nACTRUALLY: '{lines[actualEndLineNo - 1]}'");
+                    Console.WriteLine($"  WARN: End marker not found within {forwardScanLimit} lines after LN-{endLineNo}. \n  REQEUSTED: '{endLineStr}'\n  ACTRUALLY: '{lines[actualEndLineNo - 1]}'");
                     return false;
                 }
                 // 调整实际位置
                 actualEndLineNo = markerStartIndex + 1 + searchingLines.Length;
-                Console.WriteLine($"INFO: Searching extended, found end marker at LN-{markerStartIndex + 1} instead of LN-{endLineNo}");
+                Console.WriteLine($"  INFO: Searching extended, found end marker at LN-{markerStartIndex + 1} instead of LN-{endLineNo}");
             }
 
             // 构建新内容
@@ -666,11 +678,11 @@ namespace json_do
             System.IO.File.WriteAllLines(filePath, newLines);
             if (actualStartLineNo != startLineNo || actualEndLineNo != endLineNo)
             {
-                Console.WriteLine($"Replaced {actualEndLineNo-actualStartLineNo} lines LN{actualStartLineNo}~{actualEndLineNo} (adjusted from requested LN{startLineNo}~{endLineNo}) in: {filePath}");
+                Console.WriteLine($"  Replaced {actualEndLineNo-actualStartLineNo} lines LN{actualStartLineNo}~{actualEndLineNo} (adjusted from requested LN{startLineNo}~{endLineNo}) in: {filePath}");
             }
             else
             {
-                Console.WriteLine($"Replaced {endLineNo-startLineNo} lines LN{startLineNo}~{endLineNo}] successfully in: {filePath}");
+                Console.WriteLine($"  Replaced {endLineNo-startLineNo} lines LN{startLineNo}~{endLineNo}] successfully in: {filePath}");
             }
             return true;
         }

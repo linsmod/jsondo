@@ -109,30 +109,9 @@ int main(int argc, char* argv[]) {
                 continue;
             }
 
-            // 尝试从JSON中读取第一个命令的title
-            char* title = NULL;
-            cJSON* root = cJSON_Parse(json_content);
-            if (root != NULL) {
-                cJSON* commands_array = cJSON_GetObjectItem(root, "commands");
-                if (commands_array != NULL && cJSON_IsArray(commands_array) && cJSON_GetArraySize(commands_array) > 0) {
-                    cJSON* first_command = cJSON_GetArrayItem(commands_array, 0);
-                    cJSON* title_item = cJSON_GetObjectItem(first_command, "title");
-                    if (title_item != NULL && cJSON_IsString(title_item) && strlen(title_item->valuestring) > 0) {
-                        title = strdup(title_item->valuestring);
-                    }
-                }
-                cJSON_Delete(root);
-            }
-
-            // 输出命令文件信息
-            if (title != NULL) {
-                printf("Eval command `%s` from %s\n", title, command_file);
-            } else {
-                printf("Eval command from %s\n", command_file);
-            }
+            printf("Eval command from %s\n", command_file);
 
             int result = eval_command(json_content, command_file);
-            if (title != NULL) free(title);
             free(json_content);
 
             if (result != 0) {
@@ -245,12 +224,17 @@ int eval_command(const char* json_content, const char* command_file) {
             success = 0;
             break;
         }
-        
+
         // 获取可选的title字段
-        // cJSON* title_item = cJSON_GetObjectItem(command, "title");
-        // const char* title = (title_item != NULL && cJSON_IsString(title_item)) ? title_item->valuestring : NULL;
-        
-        
+        cJSON* title_item = cJSON_GetObjectItem(command, "title");
+        const char* title = (title_item != NULL && cJSON_IsString(title_item)) ? title_item->valuestring : NULL;
+
+        // 显示当前命令
+        if (title != NULL && strlen(title) > 0) {
+            printf("  Executing: `%s`\n", title);
+        }
+
+
         // 根据工具名称执行相应的操作（支持大小写不敏感）
         int operation_success = 0;
         char lower_tool_name[64] = {0};
@@ -442,13 +426,13 @@ int execute_replace_by_range(cJSON* args_json) {
 int replace_by_content(const char* file_path, const char* old_str, int start_line, const char* new_str,
                       int backward_scan_limit, int forward_scan_limit) {
     if (!file_exists(file_path)) {
-        printf("File not found: %s\n", file_path);
+        printf("  File not found: %s\n", file_path);
         return 0;
     }
     
     char* content = read_file(file_path);
     if (content == NULL) {
-        printf("Failed to read file: %s\n", file_path);
+        printf("  Failed to read file: %s\n", file_path);
         return 0;
     }
     
@@ -487,7 +471,7 @@ int replace_by_content(const char* file_path, const char* old_str, int start_lin
     // 检查是否有多个匹配项
     char* next_found = strstr(found + strlen(normalized_old_str), normalized_old_str);
     if (next_found != NULL) {
-        printf("Multiple occurrences found: %s\n", file_path);
+        printf("  Multiple occurrences found: %s\n", file_path);
         free(normalized_content);
         free(normalized_old_str);
         free(content);
@@ -511,10 +495,10 @@ int replace_by_content(const char* file_path, const char* old_str, int start_lin
     
     // 写入新内容
     if (write_file(file_path, new_content)) {
-        printf("Replaced at line %d, deleted %d lines, inserted %d lines\n", 
+        printf("  Replaced at line %d, deleted %d lines, inserted %d lines\n",
                line_number, old_line_count, new_line_count);
     } else {
-        printf("Failed to write file: %s\n", file_path);
+        printf("  Failed to write file: %s\n", file_path);
         free_string_array(old_lines, old_line_count);
         free_string_array(new_lines, new_line_count);
         free(new_content);
@@ -540,7 +524,7 @@ int replace_by_range(const char* file_path, int start_line, int end_line, const 
                      const char* start_line_str, const char* end_line_str,
                      int backward_scan_limit, int forward_scan_limit) {
     if (!file_exists(file_path)) {
-        printf("File not found: %s\n", file_path);
+        printf("  File not found: %s\n", file_path);
         return 0;
     }
     
@@ -565,7 +549,7 @@ int replace_by_range(const char* file_path, int start_line, int end_line, const 
     
     // 验证行号范围
     if (start_line > line_count) {
-        printf("Start line %d exceeds file length %d\n", start_line, line_count);
+        printf("  Start line %d exceeds file length %d\n", start_line, line_count);
         for (int i = 0; i < line_count; i++) free(lines[i]);
         return 0;
     }
@@ -573,7 +557,7 @@ int replace_by_range(const char* file_path, int start_line, int end_line, const 
     // 如果endLine为-1，则替换到文件末尾
     int actual_end_line = (end_line == -1) ? line_count : end_line;
     if (actual_end_line > line_count) {
-        printf("End line %d exceeds file length %d\n", actual_end_line, line_count);
+        printf("  End line %d exceeds file length %d\n", actual_end_line, line_count);
         for (int i = 0; i < line_count; i++) free(lines[i]);
         return 0;
     }
@@ -596,9 +580,9 @@ int replace_by_range(const char* file_path, int start_line, int end_line, const 
         }
 
         if (marker_start == -1) {
-            printf("W: Start marker not found near LN-%d (±%d lines). \n", start_line, backward_scan_limit + forward_scan_limit);
-            printf("REQEUSTED: '%s'\n", start_line_str);
-            printf("ACTRUALLY: '%s'\n", lines[start_line - 1]);
+            printf("  W: Start marker not found near LN-%d (±%d lines). \n", start_line, backward_scan_limit + forward_scan_limit);
+            printf("  REQEUSTED: '%s'\n", start_line_str);
+            printf("  ACTRUALLY: '%s'\n", lines[start_line - 1]);
             free_string_array(start_lines, start_line_count);
             for (int i = 0; i < line_count; i++) free(lines[i]);
             return 0;
@@ -619,9 +603,9 @@ int replace_by_range(const char* file_path, int start_line, int end_line, const 
                                                      min_start_line_of_end_marker - 1, forward_scan_limit);
 
         if (marker_start == -1) {
-            printf("WARN: End marker not found within %d lines after LN-%d.\n", forward_scan_limit, actual_end_line);
-            printf("REQEUSTED: '%s'\n", end_line_str);
-            printf("ACTRUALLY: '%s'\n", lines[actual_end_line - 1]);
+            printf("  WARN: End marker not found within %d lines after LN-%d.\n", forward_scan_limit, actual_end_line);
+            printf("  REQEUSTED: '%s'\n", end_line_str);
+            printf("  ACTRUALLY: '%s'\n", lines[actual_end_line - 1]);
             free_string_array(start_lines, start_line_count);
             free_string_array(end_lines, end_line_count);
             for (int i = 0; i < line_count; i++) free(lines[i]);
@@ -629,14 +613,14 @@ int replace_by_range(const char* file_path, int start_line, int end_line, const 
         }
 
         actual_end = marker_start + 1 + end_line_count;
-        printf("INFO: Searching extended, found end marker at LN-%d instead of LN-%d\n",
+        printf("  INFO: Searching extended, found end marker at LN-%d instead of LN-%d\n",
                marker_start + 1, end_line);
     }
     
     // 构建新内容
     FILE* new_file = fopen(file_path, "w");
     if (new_file == NULL) {
-        printf("Failed to open file for writing: %s\n", file_path);
+        printf("  Failed to open file for writing: %s\n", file_path);
         free_string_array(start_lines, start_line_count);
         free_string_array(end_lines, end_line_count);
         for (int i = 0; i < line_count; i++) free(lines[i]);
@@ -668,11 +652,11 @@ int replace_by_range(const char* file_path, int start_line, int end_line, const 
     copy_file(file_path, backup_path);
 
     if (actual_start_line != start_line || actual_end != actual_end_line) {
-        printf("Replaced %d lines LN%d~%d (adjusted from requested LN%d~%d) in: %s\n", 
-               actual_end - actual_start_line, actual_start_line, actual_end, 
+        printf("  Replaced %d lines LN%d~%d (adjusted from requested LN%d~%d) in: %s\n",
+               actual_end - actual_start_line, actual_start_line, actual_end,
                start_line, actual_end_line, file_path);
     } else {
-        printf("Replaced %d lines LN%d~%d successfully in: %s\n", 
+        printf("  Replaced %d lines LN%d~%d successfully in: %s\n",
                end_line - start_line, start_line, end_line, file_path);
     }
     
@@ -867,13 +851,13 @@ int replace_line_by_line(const char* file_path, char* content_lines[], int line_
     }
 
     if (start_row == -1) {
-        printf("E: First line mismatch near LN-%d (±%d lines)\n", start_line, backward_scan_limit + forward_scan_limit);
+        printf("  E: First line mismatch near LN-%d (±%d lines)\n", start_line, backward_scan_limit + forward_scan_limit);
         return 0;
     }
 
     if (start_row + search_count > line_count) {
-        printf("E: Total lines of the searching content is more than the rest lines of source\n");
-        printf("Searching lines sum: %d, but %d lines from LN-%d to the source.\n",
+        printf("  E: Total lines of the searching content is more than the rest lines of source\n");
+        printf("  Searching lines sum: %d, but %d lines from LN-%d to the source.\n",
                search_count, line_count - start_line, start_line);
         return 0;
     }
@@ -891,7 +875,7 @@ int replace_line_by_line(const char* file_path, char* content_lines[], int line_
         }
 
         if (end == -1) {
-            printf("Last line mismatch near LN-%d.\n", start_row + search_count);
+            printf("  Last line mismatch near LN-%d.\n", start_row + search_count);
             return 0;
         }
 
@@ -899,7 +883,7 @@ int replace_line_by_line(const char* file_path, char* content_lines[], int line_
         if (search_count > 2) {
             for (int i = 1; i < search_count - 1; i++) {
                 if (!is_line_text_equal(content_lines[start_row + i], search_lines[i], -1)) {
-                    printf("Matched first %d lines, but mismatch at at LN-%d\n", i, start_row + i);
+                    printf("  Matched first %d lines, but mismatch at at LN-%d\n", i, start_row + i);
                     is_line_text_equal(content_lines[start_row + i], search_lines[i], start_row + i);
                     return 0;
                 }
@@ -910,7 +894,7 @@ int replace_line_by_line(const char* file_path, char* content_lines[], int line_
     // 所有行匹配，执行替换
     FILE* file = fopen(file_path, "w");
     if (file == NULL) {
-        printf("Failed to open file for writing: %s\n", file_path);
+        printf("  Failed to open file for writing: %s\n", file_path);
         return 0;
     }
 
