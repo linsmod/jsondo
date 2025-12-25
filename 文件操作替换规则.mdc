@@ -14,10 +14,9 @@ provider:
 ## 执行流程
 当执行文件替换操作时，必须按以下顺序
 1、先将<invoke>指令转换为JSON格式并写入JSON文件，
-2、**优先使用批量执行**：将多个命令文件一次性执行 `jsondo -f <command.json> <command2.json> <command3.json> ...`
+2、**优先使用批量执行**：将多个命令文件顺序执行 `jsondo -f <command.json> <command2.json> <command3.json> ...`
 3、仅在特殊需要时才单个执行：`jsondo -f <command.json>`
-
-⚠️ **注意**：批量执行可以提高效率，避免多次启动进程开销
+**注意**：1、批量执行可以提高效率，避免多次启动进程开销。2、批量执行时，如果某个命令执行失败，则后续命令将中断
 
 jsondo支持的功能包括：
 - replace_by_content: 用于替换文件中的指定文本, 重写函数等，成功率高，推荐。
@@ -30,7 +29,7 @@ jsondo支持的功能包括：
 
 **命令参数：**
 - call（必须）：命令类型，值为"replace_by_content"
-- title（可选）：命令标题，用于在控制台中区分不同命令
+- title（可选）：命令标题，用于区分不同命令
 - file（必须）：目标文件路径
 - old_str（必须）：要替换的旧文本内容
 - new_str（必须）：新的文本内容
@@ -38,7 +37,7 @@ jsondo支持的功能包括：
 - backward_scan_limit（可选，默认10）：向前扫描的行数
 - forward_scan_limit（可选，默认15）：向后扫描的行数
 
-当直接匹配失败时，会使用逐行匹配方式在startLine附近（backward_scan_limit到forward_scan_limit范围内）查找并替换。
+当直接匹配失败时，会使用逐行匹配方式在startLine附近（由backward_scan_limit到forward_scan_limit指定的偏移内）查找替换。
 
 ```json
 {
@@ -92,7 +91,8 @@ jsondo支持的功能包括：
   ]
 }
 ```
-为提高查找成功率，可以使用可选参数backward_scan_limit和forward_scan_limit。
+使用可选参数backward_scan_limit和forward_scan_limit提高查找成功率。
+注意：目标文件中对应区域有重复行时，指定更大的搜索偏移值可能导致非期望位置的替换。
 **理解工具的扫描策略：**
 工具首先使用startLine和startLine_str确定匹配的开始位置，如果没有找到，则在以下范围搜索：
 - 前向区段：从startLine - backward_scan_limit到startLine
@@ -101,9 +101,9 @@ jsondo支持的功能包括：
 - 前向区段：从endLine - backward_scan_limit到endLine
 - 后向区段：从endLine到endLine + forward_scan_limit
 **扫描原理：**
-- backward：使用逆向扫描，从指定行向前查找
-- forward：使用正向扫描，从指定行向后查找
-这样可以降低文件中有重复行时的错误率。增加backward_scan_limit和forward_scan_limit的数值可以提高查找成功率，但可能会导致替换错误。
+- backward：使用逆向扫描，从指定行向前进行内容匹配
+- forward：使用正向扫描，从指定行向后进行内容匹配
+
 **使用扩展扫描限的示例：**
 ```json
 {
