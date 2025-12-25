@@ -6,5 +6,15 @@
   "expectedPackageFiles": [
     "C:\\Users\\linswin\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "message": "获取包漏洞数据时出错: 无法加载源 https://api.nuget.org/v3/index.json 的服务索引。",
+      "projectPath": "C:\\Users\\linswin\\source\\repos\\search_replace\\search_replace\\jsondo.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\linswin\\source\\repos\\search_replace\\search_replace\\jsondo.csproj",
+      "targetGraphs": []
+    }
+  ]
 }
